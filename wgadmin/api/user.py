@@ -6,7 +6,7 @@ from flask_restful import reqparse
 from flask_restful import abort
 from wgadmin.db.mysql import query_db
 from wgadmin.db.mysql import get_db
-from wgadmin.common.config import CONF
+from wgadmin.util.password import encode_hash_pw
 
 class User(Resource):
 
@@ -38,15 +38,7 @@ class User(Resource):
 
         #hash password
         salt = mksalt()
-        encoded_hashed_pw = b64encode(
-            scrypt(
-                password=args.password.encode(),
-                salt=salt.encode(),
-                n=CONF.scrypt_n,
-                r=CONF.scrypt_r,
-                p=CONF.scrypt_p
-            )
-        ).decode()
+        encoded_hashed_pw = encode_hash_pw(args.password, salt)
 
         #add user
         query_db(

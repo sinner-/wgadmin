@@ -1,4 +1,3 @@
-import hmac
 import json
 import datetime
 from base64 import b64encode
@@ -9,6 +8,8 @@ from flask_restful import reqparse
 from flask_restful import abort
 from wgadmin.db.mysql import query_db
 from wgadmin.db.mysql import get_db
+from wgadmin.util.password import encode_hash_pw
+from wgadmin.util.token import sign
 from wgadmin.common.config import CONF
 
 class Session(Resource):
@@ -43,18 +44,10 @@ class Session(Resource):
             one=True
         )
         if check_user is None:
-            abort(422, message="Username doesn't exist.")
+            abort(403, message="Login failed.")
 
         #verify user
-        encoded_hashed_pw = b64encode(
-            scrypt(
-                password=args.password.encode(),
-                salt=check_user[2].encode(),
-                n=CONF.scrypt_n,
-                r=CONF.scrypt_r,
-                p=CONF.scrypt_p
-            )
-        ).decode()
+        encoded_hashed_pw = encode_hash_pw(args.password, check_user[2])
 
         if check_user[1] != encoded_hashed_pw:
             abort(403, message="Login failed.")
@@ -69,12 +62,6 @@ class Session(Resource):
             ).encode()
         )
 
-        signature = b64encode(
-            hmac.new(
-                key=CONF.session_key.encode(),
-                msg=payload,
-                digestmod=sha512
-            ).digest()
-        ).decode()
+        signature = sign(CONF.session_key.encode(), payload)
 
         return {"token": "%s.%s" % (payload.decode(), signature)}, 200
