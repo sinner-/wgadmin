@@ -12,9 +12,11 @@ setup(
     packages=find_packages(),
     install_requires=[
         'Flask-RESTful>=0.3.6',
+        'PyMYSQL>=0.9.2'
     ],
     entry_points={
         'console_scripts': [
             'wg-api = wgadmin.cmd.api:main',
+            'wg-manage = wgadmin.cmd.manage:main',
         ]},
 )

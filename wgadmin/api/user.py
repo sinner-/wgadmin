@@ -12,10 +12,14 @@ class User(Resource):
     @staticmethod
     def put(username):
         parser = reqparse.RequestParser()
-        parser.add_argument('password',
-                            type=str,
-                            required=True,
-                            help="password is either blank or incorrect type.")
+
+        parser.add_argument(
+            'password',
+            type=str,
+            required=True,
+            help="password is either blank or incorrect type."
+        )
+
         args = parser.parse_args()
 
         #check if user exists already
@@ -29,12 +33,12 @@ class User(Resource):
             abort(422, message="username already registered.")
 
         encoded_hashed_pw = b64encode(
-            hashlib.scrypt(
-                password = args.password.encode(),
-                salt = mksalt(),
-                n = 16384,
-                r = 8,
-                p = 32
+            scrypt(
+                password=args.password.encode(),
+                salt=mksalt().encode(),
+                n=16384,
+                r=8,
+                p=32
             )
         ).decode()
 
