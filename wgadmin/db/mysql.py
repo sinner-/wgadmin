@@ -33,22 +33,34 @@ def query_db(query, args=(), one=False):
 
 def create_tables():
 
-    query = '''
+    tables = [
+        '''
         CREATE TABLE users (
             username VARCHAR(65) PRIMARY KEY NOT NULL,
             password VARCHAR(255) NOT NULL,
             salt VARCHAR(25) NOT NULL
         );
-    '''
+        ''',
+        '''
+        CREATE TABLE pubkeys (
+            pubkey VARCHAR(45) PRIMARY KEY NOT NULL,
+            username VARCHAR(65) NOT NULL,
+            FOREIGN KEY(username) REFERENCES users(username)
+        );
+        '''
+    ]
 
     with app.app_context():
-        query_db(query)
+        for table in tables:
+            query_db(table)
 
 def drop_tables():
 
-    query = '''
-        DROP TABLE IF EXISTS users;
-    '''
+    tables = [
+        'pubkeys',
+        'users'
+    ]
 
     with app.app_context():
-        query_db(query)
+        for table in tables:
+            query_db('DROP TABLE IF EXISTS %s;' % table)
