@@ -6,6 +6,7 @@ from flask_restful import reqparse
 from flask_restful import abort
 from wgadmin.db.mysql import query_db
 from wgadmin.db.mysql import get_db
+from wgadmin.common.config import CONF
 
 class User(Resource):
 
@@ -17,37 +18,48 @@ class User(Resource):
             'password',
             type=str,
             required=True,
-            help="password is either blank or incorrect type."
+            help="Either blank or incorrect type."
         )
 
         args = parser.parse_args()
 
         #check if user exists already
-        check_user = query_db('''
-                              SELECT username
-                              FROM users
-                              WHERE username=%s;''',
-                              (username,),
-                              one=True)
+        check_user = query_db(
+            '''
+            SELECT username
+            FROM users
+            WHERE username=%s;
+            ''',
+            (username,),
+            one=True
+        )
         if check_user is not None:
-            abort(422, message="username already registered.")
+            abort(422, message="Username already registered.")
 
+        #hash password
+        salt = mksalt()
         encoded_hashed_pw = b64encode(
             scrypt(
                 password=args.password.encode(),
-                salt=mksalt().encode(),
-                n=16384,
-                r=8,
-                p=32
+                salt=salt.encode(),
+                n=CONF.scrypt_n,
+                r=CONF.scrypt_r,
+                p=CONF.scrypt_p
             )
         ).decode()
 
-        #otherwise, add user
-        query_db('''
-                 INSERT INTO users
-                 VALUES(%s, %s);''',
-                 (username,
-                  encoded_hashed_pw))
+        #add user
+        query_db(
+            '''
+            INSERT INTO users(
+                username,
+                password,
+                salt
+            )
+            VALUES(%s, %s, %s);
+            ''',
+           (username, encoded_hashed_pw, salt)
+        )
         get_db().commit()
 
-        return "User %s registered successfully." % username, 201
+        return {"message": "User %s registered successfully." % username}, 201

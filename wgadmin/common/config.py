@@ -34,4 +34,25 @@ class Configuration(object):
         except KeyError:
             self.mysql_database = 'wgadmin'
 
+        try:
+            self.session_key = ENV['WGADMIN_SESSION_KEY']
+        except KeyError:
+            print("WGADMIN_SESSION_KEY environment variable must be specified.")
+            exit(1)
+
+        try:
+            self.scrypt_n = int(ENV['WGADMIN_SCRYPT_N'])
+        except KeyError:
+            self.scrypt_n = 16384
+
+        try:
+            self.scrypt_r = int(ENV['WGADMIN_SCRYPT_R'])
+        except KeyError:
+            self.scrypt_r = 8
+
+        try:
+            self.scrypt_p = int(ENV['WGADMIN_SCRYPT_P'])
+        except KeyError:
+            self.scrypt_p = 1
+
 CONF = Configuration()
