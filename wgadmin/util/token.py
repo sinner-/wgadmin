@@ -1,4 +1,5 @@
 import hmac
+import json
 import binascii
 from base64 import b64encode
 from base64 import b64decode
@@ -37,13 +38,15 @@ def check_auth(token):
     auth_data = token.split('.')
 
     if len(auth_data) != 2:
-        return False
+        return None
 
     message = auth_data[0].encode()
     signature = auth_data[1]
 
-    return verify(
+    v = verify(
         CONF.session_key.encode(),
         message,
         signature
     )
+
+    return json.loads(b64decode(message)) if v else None

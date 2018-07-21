@@ -1,4 +1,5 @@
 import argparse
+from wgadmin.api import app
 from wgadmin.db.mysql import create_tables
 from wgadmin.db.mysql import drop_tables
 
