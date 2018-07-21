@@ -1,5 +1,3 @@
-from base64 import b64encode
-from hashlib import scrypt
 from crypt import mksalt
 from flask_restful import Resource
 from flask_restful import reqparse
@@ -50,7 +48,7 @@ class User(Resource):
             )
             VALUES(%s, %s, %s);
             ''',
-           (username, encoded_hashed_pw, salt)
+            (username, encoded_hashed_pw, salt)
         )
         get_db().commit()
 

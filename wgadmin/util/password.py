@@ -2,7 +2,7 @@ from base64 import b64encode
 from hashlib import scrypt
 from wgadmin.common.config import CONF
 
-def encode_hash_pw(password, salt):    
+def encode_hash_pw(password, salt):
     encoded_hashed_pw = b64encode(
         scrypt(
             password=password.encode(),

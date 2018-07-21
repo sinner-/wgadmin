@@ -1,13 +1,10 @@
 import json
 import datetime
 from base64 import b64encode
-from hashlib import scrypt
-from hashlib import sha512
 from flask_restful import Resource
 from flask_restful import reqparse
 from flask_restful import abort
 from wgadmin.db.mysql import query_db
-from wgadmin.db.mysql import get_db
 from wgadmin.util.password import encode_hash_pw
 from wgadmin.util.token import sign
 from wgadmin.common.config import CONF
