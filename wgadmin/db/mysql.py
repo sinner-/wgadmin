@@ -47,6 +47,13 @@ def create_tables():
             username VARCHAR(65) NOT NULL,
             FOREIGN KEY(username) REFERENCES users(username)
         );
+        ''',
+        '''
+        CREATE TABLE leases (
+            ip VARCHAR(15) PRIMARY KEY NOT NULL,
+            pubkey VARCHAR(45),
+            FOREIGN KEY(pubkey) REFERENCES pubkeys(pubkey)
+        );
         '''
     ]
 
@@ -57,6 +64,7 @@ def create_tables():
 def drop_tables():
 
     tables = [
+        'leases',
         'pubkeys',
         'users'
     ]
