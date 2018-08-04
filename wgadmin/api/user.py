@@ -4,6 +4,7 @@ from flask_restful import reqparse
 from flask_restful import abort
 from wgadmin.db.mysql import query_db
 from wgadmin.db.mysql import get_db
+from wgadmin.util.token import check_auth
 from wgadmin.util.password import encode_hash_pw
 
 class User(Resource):
@@ -16,6 +17,21 @@ class User(Resource):
             'password',
             type=str,
             required=True,
+            help="Either blank or incorrect type."
+        )
+        parser.add_argument(
+            'role',
+            type=str,
+            required=False,
+            default='user',
+            help="Either blank or incorrect type."
+        )
+        parser.add_argument(
+            'Authorization',
+            type=str,
+            location='headers',
+            default='unauthorized',
+            required=False,
             help="Either blank or incorrect type."
         )
 
@@ -34,6 +50,11 @@ class User(Resource):
         if check_user is not None:
             abort(422, message="Username already registered.")
 
+        if args.role != "user":
+            auth = check_auth(args.Authorization)
+            if not auth or auth['role'] != "admin":
+                abort(403, message="Unauthorized.")
+
         #hash password
         salt = mksalt()
         encoded_hashed_pw = encode_hash_pw(args.password, salt)
@@ -43,12 +64,13 @@ class User(Resource):
             '''
             INSERT INTO users(
                 username,
+                role,
                 password,
                 salt
             )
-            VALUES(%s, %s, %s);
+            VALUES(%s, %s, %s, %s);
             ''',
-            (username, encoded_hashed_pw, salt)
+            (username, args.role, encoded_hashed_pw, salt)
         )
         get_db().commit()
 

@@ -33,7 +33,7 @@ class Session(Resource):
         #check if user exists
         check_user = query_db(
             '''
-            SELECT username, password, salt
+            SELECT username, role, password, salt
             FROM users
             WHERE username=%s;
             ''',
@@ -44,9 +44,9 @@ class Session(Resource):
             abort(403, message="Login failed.")
 
         #verify user
-        encoded_hashed_pw = encode_hash_pw(args.password, check_user[2])
+        encoded_hashed_pw = encode_hash_pw(args.password, check_user[3])
 
-        if check_user[1] != encoded_hashed_pw:
+        if check_user[2] != encoded_hashed_pw:
             abort(403, message="Login failed.")
 
         #generate session
@@ -54,6 +54,7 @@ class Session(Resource):
             json.dumps(
                 {
                     'username': args.username,
+                    'role': check_user[1],
                     'iat': datetime.datetime.now().timestamp()
                 }
             ).encode()
