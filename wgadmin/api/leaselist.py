@@ -1,9 +1,7 @@
-from base64 import b64decode
 from flask_restful import Resource
 from flask_restful import reqparse
 from flask_restful import abort
 from wgadmin.db.mysql import query_db
-from wgadmin.db.mysql import get_db
 from wgadmin.util.token import check_auth
 
 class LeaseList(Resource):
