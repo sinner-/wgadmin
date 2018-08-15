@@ -2,9 +2,9 @@
 
 ```
 python setup.py install
-wg-manage -c -d
-mysql -u root wgadmin -e 'INSERT INTO leases (ip) VALUES ("1.1.1.1");'
 export WGADMIN_SESSION_KEY=`uuidgen`
+wg-manage -c -d
+wg-manage -l -s 192.168.0.0/24
 wg-api
 ```
 
