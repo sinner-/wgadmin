@@ -2,6 +2,7 @@ from crypt import mksalt
 from flask_restful import Resource
 from flask_restful import reqparse
 from flask_restful import abort
+from pymysql.err import IntegrityError
 from wgadmin.db.mysql import query_db
 from wgadmin.db.mysql import get_db
 from wgadmin.util.token import check_auth
@@ -37,18 +38,6 @@ class User(Resource):
 
         args = parser.parse_args()
 
-        #check if user exists already
-        check_user = query_db(
-            '''
-            SELECT username
-            FROM users
-            WHERE username=%s;
-            ''',
-            (username,),
-            one=True
-        )
-        if check_user is not None:
-            abort(422, message="Username already registered.")
 
         if args.role != "user":
             auth = check_auth(args.Authorization)
@@ -60,18 +49,21 @@ class User(Resource):
         encoded_hashed_pw = encode_hash_pw(args.password, salt)
 
         #add user
-        query_db(
-            '''
-            INSERT INTO users(
-                username,
-                role,
-                password,
-                salt
+        try:
+            query_db(
+                '''
+                INSERT INTO users(
+                    username,
+                    role,
+                    password,
+                    salt
+                )
+                VALUES(%s, %s, %s, %s);
+                ''',
+                (username, args.role, encoded_hashed_pw, salt)
             )
-            VALUES(%s, %s, %s, %s);
-            ''',
-            (username, args.role, encoded_hashed_pw, salt)
-        )
-        get_db().commit()
+            get_db().commit()
+        except IntegrityError:
+            abort(422, message="Username already registered.")
 
         return {"message": "User %s registered successfully." % username}, 201

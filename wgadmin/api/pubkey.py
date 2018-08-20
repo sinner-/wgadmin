@@ -2,6 +2,7 @@ from base64 import b64decode
 from flask_restful import Resource
 from flask_restful import reqparse
 from flask_restful import abort
+from pymysql.err import IntegrityError
 from wgadmin.db.mysql import query_db
 from wgadmin.db.mysql import get_db
 from wgadmin.util.token import check_auth
@@ -41,16 +42,19 @@ class PublicKey(Resource):
         except:
             abort(400, message="Invalid Public Key.")
 
-        query_db(
-            '''
-            INSERT INTO pubkeys (
-                pubkey,
-                username
+        try:
+            query_db(
+                '''
+                INSERT INTO pubkeys (
+                    pubkey,
+                    username
+                )
+                VALUES(%s, %s);
+                ''',
+                (args.pubkey, auth['username'])
             )
-            VALUES(%s, %s);
-            ''',
-            (args.pubkey, auth['username'])
-        )
-        get_db().commit()
+            get_db().commit()
+        except IntegrityError:
+            abort(422, message="Public Key already saved.")
 
         return {"message": "Public Key successfully saved."}, 201
