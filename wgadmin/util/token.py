@@ -1,6 +1,7 @@
 import hmac
 import json
 import binascii
+import datetime
 from base64 import b64encode
 from base64 import b64decode
 from hashlib import sha512
@@ -49,4 +50,14 @@ def check_auth(token):
         signature
     )
 
-    return json.loads(b64decode(message)) if v else None
+    if not v:
+        return None
+
+    payload = json.loads(b64decode(message))
+
+    iat = datetime.datetime.fromtimestamp(payload['iat'])
+
+    if iat < datetime.datetime.now() - datetime.timedelta(hours=CONF.token_duration):
+        return None
+
+    return payload

@@ -55,4 +55,9 @@ class Configuration():
         except KeyError:
             self.scrypt_p = 1
 
+        try:
+            self.TOKEN_DURATION = int(env['WGADMIN_TOKEN_DURATION'])
+        except KeyError:
+            self.token_duration = 1
+
 CONF = Configuration()
