@@ -41,27 +41,15 @@ class Lease(Resource):
         except:
             abort(400, message="Invalid Public Key.")
 
-        ip = query_db(
-            '''
-            SELECT ip
-            FROM leases
-            WHERE pubkey = %s
-            ''',
-            (args.pubkey),
-            one=True
-        )
-
-        if ip:
-            abort(422, message="Lease already exists.")
-
         query_db(
             '''
             UPDATE leases
             SET pubkey = %s
-            WHERE pubkey IS NULL
+            WHERE pubkey = %s
+            OR pubkey IS NULL
             LIMIT 1
             ''',
-            (args.pubkey)
+            (args.pubkey, args.pubkey)
         )
         get_db().commit()
 
